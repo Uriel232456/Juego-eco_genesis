@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>De Átomos a Organismos</title>
+    <script src="https://cdn.jsdelivr.net/npm/brython@3.12.2/brython.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/brython@3.12.2/brython_stdlib.js"></script>
+    <style>
+        body {
+            background-color: #f0f0f0;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        #game-container {
+            border: 2px solid #333;
+            background-color: #fff;
+            position: relative;
+        }
+        #game-canvas {
+            background-color: #000;
+        }
+    </style>
+</head>
+<body onload="brython()">
+
+    <div id="game-container">
+        <canvas id="game-canvas" width="800" height="600"></canvas>
+    </div>
+
+    <script type="text/python">
+        from browser import document, window, html
+        from time import perf_counter
+
+        # --- Variables del Juego ---
+        canvas = document["game-canvas"]
+        ctx = canvas.getContext("2d")
+
+        # Configuración del juego
+        ancho_canvas = 800
+        alto_canvas = 600
+
+        # Jugador
+        jugador = {
+            'x': 50,
+            'y': 50,
+            'size': 20,
+            'color': 'green',
+            'vx': 0,
+            'vy': 0,
+            'speed': 5
+        }
+
+        # Átomos
+        atomos_recolectados = {
+            'H': 0,
+            'O': 0,
+            'C': 0
+        }
+        
+        lista_atomos = []
+
+        # --- Funciones de Dibujo ---
+        def dibujar_jugador():
+            ctx.fillStyle = jugador['color']
+            ctx.fillRect(jugador['x'], jugador['y'], jugador['size'], jugador['size'])
+
+        def dibujar_atomos():
+            for atomo in lista_atomos:
+                ctx.fillStyle = atomo['color']
+                ctx.beginPath()
+                ctx.arc(atomo['x'], atomo['y'], atomo['size'], 0, 2 * 3.14159)
+                ctx.fill()
+
+        def dibujar_hud():
+            ctx.fillStyle = 'white'
+            ctx.font = '20px Arial'
+            ctx.fillText(f"Hidrógeno (H): {atomos_recolectados['H']}", 10, 30)
+            ctx.fillText(f"Oxígeno (O): {atomos_recolectados['O']}", 10, 60)
+            ctx.fillText(f"Carbono (C): {atomos_recolectados['C']}", 10, 90)
+
+        # --- Lógica del Juego ---
+        def mover_jugador():
+            jugador['x'] += jugador['vx']
+            jugador['y'] += jugador['vy']
+            # Evitar que el jugador salga del canvas
+            jugador['x'] = max(0, min(ancho_canvas - jugador['size'], jugador['x']))
+            jugador['y'] = max(0, min(alto_canvas - jugador['size'], jugador['y']))
+
+        def detectar_colisiones():
+            nuevos_atomos_lista = []
+            for atomo in lista_atomos:
+                distancia = ((jugador['x'] - atomo['x'])**2 + (jugador['y'] - atomo['y'])**2)**0.5
+                if distancia < jugador['size'] + atomo['size']:
+                    # Colisión detectada, recolectar átomo
+                    atomos_recolectados[atomo['tipo']] += 1
+                else:
+                    nuevos_atomos_lista.append(atomo)
+            
+            lista_atomos[:] = nuevos_atomos_lista
+
+        # --- Manejo de Eventos (Teclado) ---
+        def on_keydown(event):
+            if event.code == 'KeyA':
+                jugador['vx'] = -jugador['speed']
+            elif event.code == 'KeyD':
+                jugador['vx'] = jugador['speed']
+            elif event.code == 'KeyW':
+                jugador['vy'] = -jugador['speed']
+            elif event.code == 'KeyS':
+                jugador['vy'] = jugador['speed']
+
+        def on_keyup(event):
+            if event.code in ['KeyA', 'KeyD']:
+                jugador['vx'] = 0
+            elif event.code in ['KeyW', 'KeyS']:
+                jugador['vy'] = 0
+
+        document.bind('keydown', on_keydown)
+        document.bind('keyup', on_keyup)
+
+        # --- Bucle Principal del Juego ---
+        def loop_juego(t):
+            ctx.clearRect(0, 0, ancho_canvas, alto_canvas)
+            
+            mover_jugador()
+            detectar_colisiones()
+            
+            # Ejemplo de generación de átomo (esto debe ser mejorado con la lógica de enemigos)
+            if len(lista_atomos) < 5:
+                import random
+                tipos = ['H', 'O', 'C']
+                tipo_random = random.choice(tipos)
+                color_map = {'H': 'blue', 'O': 'red', 'C': 'gray'}
+                lista_atomos.append({
+                    'tipo': tipo_random,
+                    'color': color_map[tipo_random],
+                    'x': random.randint(50, ancho_canvas-50),
+                    'y': random.randint(50, alto_canvas-50),
+                    'size': 10
+                })
+
+            dibujar_jugador()
+            dibujar_atomos()
+            dibujar_hud()
+            
+            window.requestAnimationFrame(loop_juego)
+
+        window.requestAnimationFrame(loop_juego)
+
+    </script>
+</body>
+</html>
