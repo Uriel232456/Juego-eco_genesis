@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>De Átomos a Organismos</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+</head>
+<body>
+    <div id="game-container">
+        <!-- El canvas de Phaser se inyectará aquí -->
+        <div id="hud">
+            <span id="atom-count">Átomos recolectados: 0</span>
+            <button id="create-molecule-btn">Crear Molécula (3 Átomos)</button>
+        </div>
+        <div id="message-box">
+            <p id="message-text">¡Recolecta átomos para empezar!</p>
+        </div>
+    </div>
+    <script type="module" src="game.js"></script>
+</body>
+</html>
